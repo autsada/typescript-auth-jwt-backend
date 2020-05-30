@@ -22,7 +22,7 @@ const startServer = async () => {
 
     const app = express()
 
-    const server = createServer()
+    const server = await createServer()
 
     server.applyMiddleware({ app })
 
