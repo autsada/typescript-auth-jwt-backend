@@ -2,6 +2,7 @@ import { config } from 'dotenv'
 config()
 import express from 'express'
 import mongoose from 'mongoose'
+import cookieParser from 'cookie-parser'
 
 import createServer from './createServer'
 
@@ -21,6 +22,7 @@ const startServer = async () => {
     )
 
     const app = express()
+    app.use(cookieParser())
 
     const server = await createServer()
 
@@ -37,5 +39,3 @@ const startServer = async () => {
 }
 
 startServer()
-
-// /^[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}$/i

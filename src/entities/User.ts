@@ -1,4 +1,4 @@
-import { getModelForClass, prop, arrayProp } from '@typegoose/typegoose'
+import { getModelForClass, prop } from '@typegoose/typegoose'
 import { ObjectType, Field, ID } from 'type-graphql'
 
 import { RoleOptions } from '../types'
@@ -35,8 +35,8 @@ export class User {
   googleId?: string
 
   @Field(() => [String])
-  @arrayProp({
-    items: String,
+  @prop({
+    type: String,
     enum: RoleOptions,
     default: [RoleOptions.client],
   })

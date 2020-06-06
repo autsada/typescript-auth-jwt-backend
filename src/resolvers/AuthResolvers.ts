@@ -1,4 +1,12 @@
-import { Resolver, Query, Mutation, Arg, Ctx } from 'type-graphql'
+import {
+  Resolver,
+  Query,
+  Mutation,
+  Arg,
+  Ctx,
+  ObjectType,
+  Field,
+} from 'type-graphql'
 import bcrypt from 'bcryptjs'
 
 import { User, UserModel } from '../entities/User'
@@ -9,6 +17,13 @@ import {
 } from '../utils/validate'
 import { createToken, sendToken } from '../utils/tokenHandler'
 import { AppContext } from '../types'
+import { isAuthenticated } from '../utils/authHandler'
+
+@ObjectType()
+export class ResponseMessage {
+  @Field()
+  message: string
+}
 
 @Resolver()
 export class AuthResolvers {
@@ -21,31 +36,51 @@ export class AuthResolvers {
     }
   }
 
-  @Mutation(() => User)
-  async signUp(
+  @Query(() => User, { nullable: true }) // [User]!
+  async me(@Ctx() { req }: AppContext): Promise<User | null> {
+    try {
+      if (!req.userId) throw new Error('Please log in to proceed.')
+
+      // Check if user is authenticated
+      const user = await isAuthenticated(req.userId, req.tokenVersion)
+
+      // if (!user) throw new Error('Not authenticated')
+
+      return user
+    } catch (error) {
+      throw error
+    }
+  }
+
+  @Mutation(() => User, { nullable: true })
+  async signup(
     @Arg('username') username: string,
     @Arg('email') email: string,
     @Arg('password') password: string,
     @Ctx() { res }: AppContext
-  ) {
+  ): Promise<User | null> {
     try {
-      // Validate username
       if (!username) throw new Error('Username is required.')
+      if (!email) throw new Error('Email is required.')
+      if (!password) throw new Error('Password is required.')
 
+      // Check if email exist in the database
+      const user = await UserModel.findOne({ email })
+
+      if (user) throw new Error('Email already in use, please sign in instead.')
+
+      // Validate username
       const isUsernameValid = validateUsername(username)
 
       if (!isUsernameValid)
         throw new Error('Username must be between 3 - 60 characters.')
 
       // Validate email
-      if (!email) throw new Error('Email is required.')
-
       const isEmailValid = validateEmail(email)
 
       if (!isEmailValid) throw new Error('Email is invalid.')
 
       // Validate password
-      if (!password) throw new Error('Password is required.')
       const isPasswordValid = validatePassword(password)
 
       if (!isPasswordValid)
@@ -68,6 +103,62 @@ export class AuthResolvers {
       sendToken(res, token)
 
       return newUser
+    } catch (error) {
+      throw error
+    }
+  }
+
+  @Mutation(() => User, { nullable: true })
+  async signin(
+    @Arg('email') email: string,
+    @Arg('password') password: string,
+    @Ctx() { res }: AppContext
+  ): Promise<User | null> {
+    try {
+      if (!email) throw new Error('Email is required.')
+      if (!password) throw new Error('Password is required.')
+
+      // Check if email exist in the database
+      const user = await UserModel.findOne({ email })
+
+      if (!user) throw new Error('Email not found.')
+
+      // Check if the password is valid
+
+      const isPasswordValid = await bcrypt.compare(password, user.password)
+
+      if (!isPasswordValid) throw new Error('Email or password is invalid')
+
+      // Create token
+      const token = createToken(user.id, user.tokenVersion)
+
+      // Send token to the frontend
+      sendToken(res, token)
+
+      return user
+    } catch (error) {
+      throw error
+    }
+  }
+
+  @Mutation(() => ResponseMessage, { nullable: true })
+  async signout(
+    @Ctx() { req, res }: AppContext
+  ): Promise<ResponseMessage | null> {
+    try {
+      // Check if email exist in the database
+      const user = await UserModel.findById(req.userId)
+
+      if (!user) return null
+
+      // Bump up token version
+      user.tokenVersion = user.tokenVersion + 1
+      await user.save()
+
+      // Clear cookie in the brower
+      res.clearCookie(process.env.COOKIE_NAME!)
+
+      return { message: 'Goodbye' }
     } catch (error) {
       throw error
     }
