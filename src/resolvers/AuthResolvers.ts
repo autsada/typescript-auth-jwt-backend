@@ -1,3 +1,4 @@
+import { randomBytes } from 'crypto'
 import {
   Resolver,
   Query,
@@ -8,6 +9,7 @@ import {
   Field,
 } from 'type-graphql'
 import bcrypt from 'bcryptjs'
+import Sendgrid, { MailDataRequired } from '@sendgrid/mail'
 
 import { User, UserModel } from '../entities/User'
 import {
@@ -18,6 +20,8 @@ import {
 import { createToken, sendToken } from '../utils/tokenHandler'
 import { AppContext } from '../types'
 import { isAuthenticated } from '../utils/authHandler'
+
+Sendgrid.setApiKey(process.env.SENDGRID_API_KEY!)
 
 @ObjectType()
 export class ResponseMessage {
@@ -159,6 +163,54 @@ export class AuthResolvers {
       res.clearCookie(process.env.COOKIE_NAME!)
 
       return { message: 'Goodbye' }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  @Mutation(() => ResponseMessage, { nullable: true })
+  async requestResetPassword(
+    @Arg('email') email: string
+  ): Promise<ResponseMessage | null> {
+    try {
+      if (!email) throw new Error('Email is required.')
+
+      // Check if email exist in the database
+      const user = await UserModel.findOne({ email })
+
+      if (!user) throw new Error('Email not found.')
+
+      const resetPasswordToken = randomBytes(16).toString('hex')
+      const resetPasswordTokenExpiry = Date.now() + 1000 * 60 * 30
+
+      // Update user in the database
+      const updatedUser = await UserModel.findOneAndUpdate(
+        { email },
+        { resetPasswordToken, resetPasswordTokenExpiry },
+        { new: true }
+      )
+
+      if (!updatedUser) throw new Error('Sorry, cannot proceed.')
+
+      // Send email to user's email
+      const message: MailDataRequired = {
+        from: 'admin@test.com',
+        to: email,
+        subject: 'Reset password',
+        html: `
+          <div>
+            <p>Please click below link to reset your password.</p>
+            <a href='http://localhost:5000/?resetToken=${resetPasswordToken}' target='blank'>Click to reset password</a>
+          </div>
+        `,
+      }
+
+      const response = await Sendgrid.send(message)
+
+      if (!response || response[0]?.statusCode !== 202)
+        throw new Error('Sorry, cannot proceed.')
+
+      return { message: 'Please check your email to reset password' }
     } catch (error) {
       throw error
     }
