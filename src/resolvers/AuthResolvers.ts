@@ -215,4 +215,48 @@ export class AuthResolvers {
       throw error
     }
   }
+
+  @Mutation(() => ResponseMessage, { nullable: true })
+  async resetPassword(
+    @Arg('password') password: string,
+    @Arg('token') token: string
+  ): Promise<ResponseMessage | null> {
+    try {
+      if (!password) throw new Error('Password is required.')
+      if (!token) throw new Error('Sorry, cannot proceed.')
+
+      // Check if email exist in the database
+      const user = await UserModel.findOne({ resetPasswordToken: token })
+
+      if (!user) throw new Error('Sorry, cannot proceed.')
+
+      if (!user.resetPasswordTokenExpiry)
+        throw new Error('Sorry, cannot proceed.')
+
+      // Check if token is valid
+      const isTokenValid = Date.now() <= user.resetPasswordTokenExpiry
+
+      if (!isTokenValid) throw new Error('Sorry, cannot proceed.')
+
+      // Hash password
+      const hashedPassword = await bcrypt.hash(password, 10)
+
+      // Update user in the database
+      const updatedUser = await UserModel.findOneAndUpdate(
+        { email: user.email },
+        {
+          password: hashedPassword,
+          resetPasswordToken: undefined,
+          resetPasswordTokenExpiry: undefined,
+        },
+        { new: true }
+      )
+
+      if (!updatedUser) throw new Error('Sorry, cannot proceed.')
+
+      return { message: 'Successfully reset password.' }
+    } catch (error) {
+      throw error
+    }
+  }
 }
