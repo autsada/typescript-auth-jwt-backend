@@ -15,6 +15,7 @@ type Mutation {
   requestResetPassword(email: String!): ResponseMessage
   resetPassword(token: String!, password: String!): ResponseMessage
   updateRoles(userId: String!, newRoles: [String!]!): User
+  deleteUser(userId: String!): ResponseMessage
 }
 
 type Query {
