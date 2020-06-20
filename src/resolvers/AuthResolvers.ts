@@ -18,7 +18,7 @@ import {
   validatePassword,
 } from '../utils/validate'
 import { createToken, sendToken } from '../utils/tokenHandler'
-import { AppContext } from '../types'
+import { AppContext, RoleOptions } from '../types'
 import { isAuthenticated } from '../utils/authHandler'
 
 Sendgrid.setApiKey(process.env.SENDGRID_API_KEY!)
@@ -92,7 +92,9 @@ export class AuthResolvers {
 
       const hashedPassword = await bcrypt.hash(password, 10)
 
-      const newUser = await UserModel.create({
+      const newUser = await UserModel.create<
+        Pick<User, 'username' | 'email' | 'password'>
+      >({
         username,
         email,
         password: hashedPassword,
@@ -255,6 +257,39 @@ export class AuthResolvers {
       if (!updatedUser) throw new Error('Sorry, cannot proceed.')
 
       return { message: 'Successfully reset password.' }
+    } catch (error) {
+      throw error
+    }
+  }
+
+  @Mutation(() => User, { nullable: true })
+  async updateRoles(
+    @Arg('newRoles', () => [String]) newRoles: RoleOptions[],
+    @Arg('userId') userId: string,
+    @Ctx() { req }: AppContext
+  ) {
+    try {
+      if (!req.userId) throw new Error('Please login to proceed.')
+
+      // Check if user (admin) is authenticated
+      const admin = await isAuthenticated(req.userId, req.tokenVersion)
+
+      // Check if admin is super admin
+      const isSuperAdmin = admin.roles.includes(RoleOptions.superAdmin)
+
+      if (!isSuperAdmin) throw new Error('Not authorized.')
+
+      // Query user (to be updated) from the database
+      const user = await UserModel.findById(userId)
+
+      if (!user) throw new Error('User not found.')
+
+      // Update roles
+      user.roles = newRoles
+
+      await user.save()
+
+      return user
     } catch (error) {
       throw error
     }
