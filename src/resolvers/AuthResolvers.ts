@@ -43,10 +43,8 @@ export class AuthResolvers {
   @Query(() => User, { nullable: true }) // [User]!
   async me(@Ctx() { req }: AppContext): Promise<User | null> {
     try {
-      if (!req.userId) throw new Error('Please log in to proceed.')
-
       // Check if user is authenticated
-      const user = await isAuthenticated(req.userId, req.tokenVersion)
+      const user = await isAuthenticated(req)
 
       // if (!user) throw new Error('Not authenticated')
 
@@ -269,10 +267,8 @@ export class AuthResolvers {
     @Ctx() { req }: AppContext
   ): Promise<User | null> {
     try {
-      if (!req.userId) throw new Error('Please login to proceed.')
-
       // Check if user (admin) is authenticated
-      const admin = await isAuthenticated(req.userId, req.tokenVersion)
+      const admin = await isAuthenticated(req)
 
       // Check if admin is super admin
       const isSuperAdmin = admin.roles.includes(RoleOptions.superAdmin)
@@ -301,10 +297,8 @@ export class AuthResolvers {
     @Ctx() { req }: AppContext
   ): Promise<ResponseMessage | null> {
     try {
-      if (!req.userId) throw new Error('Please login to proceed.')
-
       // Check if user (admin) is authenticated
-      const admin = await isAuthenticated(req.userId, req.tokenVersion)
+      const admin = await isAuthenticated(req)
 
       // Check if admin is super admin
       const isSuperAdmin = admin.roles.includes(RoleOptions.superAdmin)

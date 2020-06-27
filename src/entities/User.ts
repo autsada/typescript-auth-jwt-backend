@@ -13,7 +13,7 @@ export class User {
   username: string
 
   @Field()
-  @prop({ required: true, trim: true, unique: true })
+  @prop({ required: true, trim: true, unique: true, lowercase: true })
   email: string
 
   @prop({ required: true })
