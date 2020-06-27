@@ -32,9 +32,19 @@ export class ResponseMessage {
 @Resolver()
 export class AuthResolvers {
   @Query(() => [User], { nullable: 'items' }) // [User]!
-  async users(): Promise<User[] | null> {
+  async users(@Ctx() { req }: AppContext): Promise<User[] | null> {
     try {
-      return UserModel.find()
+      // Check if user is authenticated
+      const user = await isAuthenticated(req)
+
+      // Check if user is authorized (Admin, SuperAdmin)
+      const isAuthorized =
+        user.roles.includes(RoleOptions.superAdmin) ||
+        user.roles.includes(RoleOptions.admin)
+
+      if (!isAuthorized) throw new Error('No Authorization.')
+
+      return UserModel.find().sort({ createdAt: 'desc' })
     } catch (error) {
       throw error
     }
