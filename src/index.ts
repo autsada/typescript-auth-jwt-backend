@@ -2,6 +2,7 @@ import { config } from 'dotenv'
 config()
 import express from 'express'
 import mongoose from 'mongoose'
+import passport from 'passport'
 import cookieParser from 'cookie-parser'
 
 import createServer from './createServer'
@@ -23,6 +24,9 @@ const startServer = async () => {
 
     const app = express()
     app.use(cookieParser())
+
+    // Facebook login route
+    app.get('/auth/facebook', passport.authenticate('facebook'))
 
     const server = await createServer()
 
