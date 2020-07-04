@@ -11,6 +11,7 @@ const FBConfig: FBStrategyOptionWithRequest = {
   clientID: FACEBOOK_APP_ID!,
   clientSecret: FACEBOOK_APP_SECRET!,
   callbackURL: 'http://localhost:5000/auth/facebook/callback',
+  profileFields: ['id', 'email', 'displayName', 'name'],
   passReqToCallback: true,
 }
 
@@ -19,8 +20,7 @@ export const PassportFB = () =>
     new FBStrategy(FBConfig, (req, _, __, profile, done) => {
       try {
         if (profile) {
-          const request = req as AppRequest
-          request.userProfile = profile
+          ;(req as AppRequest).userProfile = profile
           done(null, profile)
         }
       } catch (error) {
