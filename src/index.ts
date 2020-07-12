@@ -6,12 +6,22 @@ import passport from 'passport'
 import cookieParser from 'cookie-parser'
 
 import createServer from './createServer'
-import { PassportFB } from './passport'
-import { FBAuthenticate } from './passport/socialMediaAuth'
+import { PassportFB, PassportGoogle } from './passport'
+import { FBAuthenticate, GoogleAuthenticate } from './passport/socialMediaAuth'
 
-const { PORT, DB_USER, DB_PASSWORD, DB_ENDPOINT, DB_NAME } = process.env
+const {
+  PORT,
+  DB_USER,
+  DB_PASSWORD,
+  DB_ENDPOINT,
+  DB_NAME,
+  FACEBOOK_CALLBACK_ROUTE,
+  GOOGLE_CALLBACK_ROUTE,
+  FRONTEND_URI,
+} = process.env
 
 PassportFB()
+PassportGoogle()
 
 const startServer = async () => {
   try {
@@ -34,13 +44,29 @@ const startServer = async () => {
 
     // Facebook callback route
     app.get(
-      '/auth/facebook/callback',
+      FACEBOOK_CALLBACK_ROUTE!,
       passport.authenticate('facebook', {
         session: false,
-        failureRedirect: 'http://localhost:3000',
+        failureRedirect: FRONTEND_URI,
         scope: ['profile', 'email'],
       }),
       FBAuthenticate
+    )
+
+    // Google login route
+    app.get(
+      '/auth/google',
+      passport.authenticate('google', { scope: ['profile', 'email'] })
+    )
+
+    // Google callback route
+    app.get(
+      GOOGLE_CALLBACK_ROUTE!,
+      passport.authenticate('google', {
+        session: false,
+        failureRedirect: FRONTEND_URI,
+      }),
+      GoogleAuthenticate
     )
 
     const server = await createServer()
