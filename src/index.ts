@@ -71,7 +71,10 @@ const startServer = async () => {
 
     const server = await createServer()
 
-    server.applyMiddleware({ app })
+    server.applyMiddleware({
+      app,
+      cors: { origin: FRONTEND_URI, credentials: true },
+    })
 
     app.listen({ port: PORT }, () =>
       console.log(
