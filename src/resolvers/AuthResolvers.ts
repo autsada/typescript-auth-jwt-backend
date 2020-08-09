@@ -210,7 +210,7 @@ export class AuthResolvers {
         html: `
           <div>
             <p>Please click below link to reset your password.</p>
-            <a href='http://localhost:5000/?resetToken=${resetPasswordToken}' target='blank'>Click to reset password</a>
+            <a href='http://localhost:3000/?resetToken=${resetPasswordToken}' target='blank'>Click to reset password</a>
           </div>
         `,
       }
