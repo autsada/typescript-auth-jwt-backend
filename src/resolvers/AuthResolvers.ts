@@ -291,7 +291,11 @@ export class AuthResolvers {
       if (!user) throw new Error('User not found.')
 
       // Update roles
-      user.roles = newRoles
+      if (!newRoles.includes(RoleOptions.client)) {
+        user.roles = [...newRoles, RoleOptions.client]
+      } else {
+        user.roles = newRoles
+      }
 
       await user.save()
 
