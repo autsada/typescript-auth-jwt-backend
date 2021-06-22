@@ -5,7 +5,7 @@
     "main": "dist/index.js",
     "scripts": {
         "start": "node dist/index.js",
-        "dev": "rimraf dist && tsc",
+        "dev": "rimraf dist && tsc -w",
         "watch-node": "nodemon dist/index.js",
         "watch-ts": "tsc -w",
         "postinstall": "tsc",
