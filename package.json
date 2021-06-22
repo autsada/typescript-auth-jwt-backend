@@ -16,7 +16,7 @@
     "author": "",
     "license": "ISC",
     "engines": {
-        "node": "14.16.0"
+        "node": "14.x"
     },
     "dependencies": {
         "@sendgrid/mail": "^7.1.0",
