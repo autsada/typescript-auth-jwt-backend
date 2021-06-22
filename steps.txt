@@ -39,3 +39,6 @@
   }
 
 4. create tsconfig.json
+
+        "build": "rimraf dist && tsc",
+        "dev": "ts-node-dev --respawn src/index.ts",
