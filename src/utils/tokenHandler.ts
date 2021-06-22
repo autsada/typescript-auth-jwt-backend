@@ -10,8 +10,8 @@ export const sendToken = (res: Response, token: string) =>
     res.cookie(process.env.COOKIE_NAME!, token, {
         httpOnly: true,
         domain: process.env.FRONTEND_URI,
-        secure: true,
-        sameSite: 'none',
+        // secure: true,
+        // sameSite: 'none',
     })
 
 export const verifyToken = (token: string) =>
