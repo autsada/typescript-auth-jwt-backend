@@ -71,5 +71,3 @@ export default async () => {
     },
   })
 }
-
-// eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJ1c2VySWQiOiI1ZWY2ZTkwZTIyMDliMjg5MjQ5MmY3ODciLCJ0b2tlblZlcnNpb24iOjYsImlhdCI6MTU5MzI0MTE2MCwiZXhwIjoxNTk0NTM3MTYwfQ.M8aeQHTPi6Qg3VIU0wA0mRMhFmnbA2GIGGYLji7JSog
