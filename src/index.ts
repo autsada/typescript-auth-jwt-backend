@@ -76,10 +76,12 @@ const startServer = async () => {
             cors: { origin: FRONTEND_URI, credentials: true },
         })
 
-        app.listen({ port: PORT }, () =>
-            console.log(
-                `Server is ready at http://localhost:${PORT}${server.graphqlPath}`
-            )
+        app.listen(
+            { port: PORT }
+            // () =>
+            //   console.log(
+            //       `Server is ready at http://localhost:${PORT}${server.graphqlPath}`
+            //   )
         )
     } catch (error) {
         console.log(error)
