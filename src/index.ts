@@ -4,6 +4,7 @@ import express from 'express'
 import mongoose from 'mongoose'
 import passport from 'passport'
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 
 import createServer from './createServer'
 import { PassportFB, PassportGoogle } from './passport'
@@ -37,6 +38,12 @@ const startServer = async () => {
         )
 
         const app = express()
+        app.use(
+            cors({
+                origin: FRONTEND_URI,
+                credentials: true,
+            })
+        )
         app.use(cookieParser())
 
         // Facebook login route
@@ -73,7 +80,7 @@ const startServer = async () => {
 
         server.applyMiddleware({
             app,
-            cors: { origin: FRONTEND_URI, credentials: true },
+            // cors: { origin: FRONTEND_URI, credentials: true },
         })
 
         app.listen(
